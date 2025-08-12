@@ -1,0 +1,15 @@
+torch==2.5.1+cu124
+transformers @ git+https://github.com/huggingface/transformers.git@31bb662db19355e56b3125ab5c48b780ec13111c
+datasets==3.3.1
+accelerate==1.4.0
+peft==0.14.0
+sympy==1.13.1
+math-verify==0.5.2
+numpy==1.26.4
+pandas==2.2.3
+tqdm==4.67.1
+sentencepiece==0.2.0
+protobuf==3.20.3
+scipy==1.15.2
+matplotlib==3.6.2
+vllm==0.7.3
