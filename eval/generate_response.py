@@ -327,51 +327,7 @@ def evaluate(all_preds, name):
         )
         ans_value = None
 
-        # if name == "MATH-V":
-        #     if answer in ["A", "B", "C", "D", "E"] and len(line["options"]) > 0:
-        #         ans_value = line["options"][ord(answer) - ord("A")]
-
-        #     prefixes = ["(A)", "(B)", "(C)", "(D)", "(E)"]
-
-        #     for prefix in prefixes:
-        #         if prefix in model_answer:
-        #             model_answer = prefix[1:-1]
-        #             break
-
-        #     prefixes = ["A)", "B)", "C)", "D)", "E)"]
-
-        #     for prefix in prefixes:
-        #         if prefix in model_answer:
-        #             model_answer = prefix[:-1]
-        #             break
-
-        # elif name == "We-Math":
-        #     options = extract_options(line["option"], name)
-        #     ans_value = options.get(answer, None)  # B. 3, 50, 40   --->  3, 50, 40
-        # elif name == "MathVerse":
-        #     options = extract_options(line["question_for_eval"], name)
-        #     ans_value = options.get(answer, None)
-        # elif name == "MathVista":
-        #     if answer in ["A", "B", "C", "D", "E"] and line["choices"]:
-        #         ans_value = line["choices"][ord(answer) - ord("A")]
-        #     print(answer)
-        #     if (
-        #         answer not in ["A", "B", "C", "D", "E"]
-        #         and line["choices"]
-        #         and answer in line["choices"]
-        #     ):
-        #         ans_value = chr(line["choices"].index(answer) + ord("A"))
-        #     # print(ans_value)
-        #     # assert 0
-        # if not answer.startswith("$") and not answer.endswith("$"):
-        #     answer = "$" + answer + "$"
-
-        # if (
-        #     ans_value is not None
-        #     and not ans_value.startswith("$")
-        #     and not ans_value.endswith("$")
-        # ):
-        #     ans_value = "$" + ans_value + "$"
+        
 
         parsed_model_answer = parse(
             model_answer,
