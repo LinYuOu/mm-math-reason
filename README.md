@@ -1,2 +1,82 @@
-# mm_math_reason
+# MM Math Reasoning Project
 
+[![🤗 Dataset](https://img.shields.io/badge/%F0%9F%A4%97%20Dataset-huggingface-blue)](https://huggingface.co/datasets/TencentBAC/TBAC-VLR1-7B-SFT-DATA/tree/main)
+[![🤗 Model](https://img.shields.io/badge/%F0%9F%A4%97%20Model-huggingface-blue)](https://huggingface.co/collections/TencentBAC/vlr1-6892c119672e8d0780e1d288)
+
+## Project Overview
+This project focuses on advancing mathematical reasoning capabilities in multimodal AI models. Built upon [ms-swift](https://github.com/modelscope/ms-swift.git), it provides:
+- Evaluation pipelines for math verification and answer matching
+- Training scripts for supervised fine-tuning (SFT) and reinforcement learning
+- Tools for processing JSONL datasets and generating model responses
+
+## Performance
+| Model                              | **Average** | **MathVista** | **MathVision** | **MathVerse** | **DynaMath** | **LogicVista** |
+| :--------------------------------: | :---------: | :-----------: | :------------: | :-----------: | :----------: | :------------: |
+| Qwen2.5-VL-7B                      | 40.5        | 68.0          | 25.7           | 45.5          | 21.8         | 41.2           |
+| VLAA-Thinker-Qwen2.5-7B            | 42.7        | 68.0          | 26.4           | 48.2          | 22.4         | 48.5           |
+| VL-Rethinker-7B                    | 41.8        | 73.7          | 28.4           | 46.4          | 17.8         | 42.7           |
+| TBAC-VLR1-7B-RL                    | 41.3        | 70.1          | 25.4           | 43.4          | 19.0         | 48.4           |
+| TBAC-VLR1-7B-SFT                   | 41.8        | 65.1          | 28.5           | 49.1          | 20.6         | 45.5           |
+| TBAC-VLR1-7B                       | **43.4**    | 66.7          | **31.4**       | **50.1**      | **22.6**     | 46.4           |
+
+## Installation
+### Steps
+1. Clone ms-swift framework:
+   ```bash
+   git clone https://github.com/modelscope/ms-swift.git ms-swift
+   cd ms-swift && pip install -e .
+   ```
+2. Clone this repository:
+   ```bash
+   git clone https://github.com/modelscope/mm_math_reason.git
+   cd mm_math_reason
+   ```
+3. Install dependencies:
+   ```bash
+   bash scripts/install.sh
+   ```
+For a complete list of required packages, see `requirements.txt` in the project root directory.
+
+## Dataset
+Download SFT and RL datasets from [HuggingFace](https://huggingface.co/datasets/TencentBAC/TBAC-VLR1-7B-SFT-DATA/tree/main).
+
+## Benchmark
+| Benchmark Name   |
+|-----------------|
+| DynaMath        | 
+| LogicVista      |
+| MATHVision      | 
+| MathVerse       |
+| MathVista       |
+Download benchmark datasets from [HuggingFace](https://huggingface.co/datasets/TencentBAC/TBAC-VLR1-7B-SFT-DATA/tree/main).
+
+## Usage
+### Evaluation
+1. Generate model responses:
+   ```bash
+   bash eval/eval.sh
+   ```
+2. Evaluate a JSONL file with math_verify:
+   ```bash
+   python eval/eval_from_jsonl_with_mathverify.py --input_file <input_file.jsonl> --output_folder <output_folder>
+   ```
+
+### Training
+```bash
+# Supervised Fine-Tuning
+bash scripts/train_sft.sh
+
+# Reinforcement Learning
+bash scripts/train_rl.sh
+```
+
+## Project Structure
+- `eval/`: Evaluation scripts and math verification tools
+  - `eval.sh`: Main evaluation pipeline
+  - `eval_from_jsonl_with_mathverify.py`: JSONL processor with math verification
+- `scripts/`: Training configurations
+  - SFT and RL training scripts
+  - Hyperparameter configurations
+
+## License
+MIT License
