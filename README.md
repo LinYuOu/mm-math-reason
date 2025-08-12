@@ -57,17 +57,6 @@ Download datasets from [HuggingFace](https://huggingface.co/datasets/TencentBAC/
    tar -xzf benchmarks.tar.gz -C eval/Benchmarks
    ```
 
-## Benchmark
-| Benchmark Name   |
-|-----------------|
-| DynaMath        | 
-| LogicVista      |
-| MATHVision      | 
-| MathVerse       |
-| MathVista       |
-
-Download benchmark datasets from [HuggingFace](https://huggingface.co/datasets/TencentBAC/TBAC-VLR1-7B-SFT-DATA/tree/main).
-
 ## Usage
 ### Evaluation
 1. Generate model responses:
