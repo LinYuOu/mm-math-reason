@@ -11,7 +11,6 @@ export SYSTEM_PROMPT_SFT_RL="You FIRST think about the reasoning process as an i
 
 # step1: generate response
 export SYSTEM_PROMPT="${SYSTEM_PROMPT_SFT_RL}"
-export LLM_API_KEY=YOUR_API_KEY
 export MODEL_NAME_AND_PATH=YOUR_MODEL
 export MAX_OUTPUT_TOKEN=8192
 OUTPUT_DIR=
@@ -26,7 +25,6 @@ touch $log_path
 python eval/generate_response.py.py \
     --model_name_and_path $MODEL_NAME_AND_PATH \
     --output_dir  $OUTPUT_DIR\
-    --eval_with_llm \
     2>&1 | tee -a ${log_path} \
 
 # step2: eval with math verify
