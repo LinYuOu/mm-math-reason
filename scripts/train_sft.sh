@@ -10,7 +10,7 @@ export CUDA_VISIBLE_DEVICES=0,1,2,3
 export NPROC_PER_NODE=4
 export EXPERIMENT_NAME=debug
 export BASE_MODEL_PATH="models/Qwen2.5-3B-Instruct"
-export DATA="Dataset/Tool-Star-SFT-54K/messages_format_final_sft_edition9_v2.jsonl"
+export DATA="SFT.jsonl"
 export OUTPUT_DIR="output/$EXPERIMENT_NAME"
 
 

@@ -5,12 +5,13 @@ export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 export NPROC_PER_NODE=7
 
 
-export DATA="items.jsonl"
+export DATA1="TEXT_DATA_RL.jsonl"
+export DATA2="MM_DATA_RL.jsonl"
 
 
 export MODEL_PATH="models/Qwen2.5-VL-7B-Instruct"
 
-export EXPERIMENT_NAME=
+export EXPERIMENT_NAME="debug"
 
 cd mm_math_reasoning/scripts/ # root path
 # 创建日志目录结构
@@ -37,7 +38,8 @@ swift rlhf \
     --train_type full \
     --attn_impl flash_attn \
     --torch_dtype bfloat16 \
-    --dataset  $DATA2\
+    --dataset  $DATA1\
+                $DATA2\
     --max_completion_length 8192 \
     --num_train_epochs 1 \
     --eval_strategy 'no' \
