@@ -4,18 +4,10 @@
 export LOG_LEVEL='INFO'
 ps aux --sort=-%mem | awk 'BEGIN { FS = "[ \t]+" } /python/ && $5>=700000 { system("kill -9 " $2) }'
 ray stop
-cd mm_math_reasoning/scripts/
-lsof -t -i:29500 | xargs -r kill -9
+cd mm_math_reason/scripts/
 
-# export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 export CUDA_VISIBLE_DEVICES=0,1,2,3
 export NPROC_PER_NODE=4
-# #### vtools 多卡 ####
-# export NNODES=$NNODES
-# export NODE_RANK=$NODE_RANK
-# export MASTER_ADDR=$MASTER_ADDR
-# export MASTER_PORT=$MASTER_PORT
-# export EXPERIMENT_NAME=Qwen2.5-3B-it-tool-SFT-h20
 export EXPERIMENT_NAME=debug
 export BASE_MODEL_PATH="models/Qwen2.5-3B-Instruct"
 export DATA="Dataset/Tool-Star-SFT-54K/messages_format_final_sft_edition9_v2.jsonl"
@@ -50,7 +42,7 @@ swift sft \
     --logging_steps 5 \
     --max_length 8192 \
     --output_dir  $OUTPUT_DIR\
-    --system mm_math_reasoning/scripts/prompt.txt \
+    --system mm_math_reason/scripts/prompt.txt \
     --warmup_ratio 0.05 \
     --dataloader_num_workers 8 \
     --deepspeed zero1 \
