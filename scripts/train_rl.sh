@@ -4,13 +4,8 @@ ray stop
 export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 export NPROC_PER_NODE=7
 
-# # #### vtools 多卡 ####
-# export NNODES=$NNODES
-# export NODE_RANK=$NODE_RANK
-# export MASTER_ADDR=$MASTER_ADDR
-# export MASTER_PORT=$MASTER_PORT
 
-export DATA="Dataset/deepmath-geo-8k/level_3B/20250710_145102/filtered_items.jsonl"
+export DATA="items.jsonl"
 
 
 export MODEL_PATH="models/Qwen2.5-VL-7B-Instruct"
@@ -32,7 +27,7 @@ MAX_PIXELS=1003520 \
 swift rlhf \
     --rlhf_type grpo \
     --model  $MODEL_PATH\
-    --external_plugins mm_math_reasoning/scripts/plugin.py \
+    --external_plugins mm_math_reason/scripts/plugin.py \
     --reward_funcs external_answer_tag_acc\
     --use_vllm true \
     --vllm_device auto \
@@ -71,7 +66,7 @@ swift rlhf \
     --save_only_model true \
     --overlong_filter true \
     --beta 2e-3 \
-    --system mm_math_reasoning/scripts/prompt_sft.txt \
+    --system mm_math_reason/scripts/prompt_sft.txt \
     --epsilon_high	0.28 \
     2>&1 | tee -a ${LOG_FILE}
     # --dynamic_sample true \
