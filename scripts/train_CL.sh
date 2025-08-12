@@ -6,22 +6,9 @@ ps aux --sort=-%mem | awk 'BEGIN { FS = "[ \t]+" } /python/ && $5>=700000 { syst
 export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 export NPROC_PER_NODE=7
 
-# #### vtools 多卡 ####
-# export NNODES=$NNODES
-# export NODE_RANK=$NODE_RANK
-# export MASTER_ADDR=$MASTER_ADDR
-# export MASTER_PORT=$MASTER_PORT
-
-# export STAGE1_DATA="Dataset/CL/20250524_145439/merged_simple_questions.jsonl"
-# export STAGE2_DATA="Dataset/CL/20250524_145439/simple_plus_medium.jsonl"
-# export STAGE3_DATA="Dataset/CL/20250524_145439/all_questions.jsonl"
-
-# export STAGE1_DATA="Dataset/Curr-ReFT-data/grpo_data/train/judge/judge_math_train_new.jsonl"
 export STAGE1_DATA="Dataset/CL/geo_text_8k/20250604_151747/merged_simple_questions.jsonl"
 export STAGE2_DATA="Dataset/CL/geo_text_8k/20250604_151747/merged_medium_questions.jsonl"
 export STAGE3_DATA="Dataset/CL/geo_text_8k/20250604_151747/merged_difficult_questions.jsonl"
-
-# export STAGE1_DATA="Dataset/gemini_vision.jsonl"
 
 # stage1
 MAX_PIXELS=1003520 \
