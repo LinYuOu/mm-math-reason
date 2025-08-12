@@ -22,7 +22,7 @@ SCRIPT_NAME=$(basename "$0")
 cp "$0" "${OUTPUT_DIR}/${SCRIPT_NAME}"
 
 touch $log_path
-python eval/generate_response.py.py \
+python eval/generate_response.py \
     --model_name_and_path $MODEL_NAME_AND_PATH \
     --output_dir  $OUTPUT_DIR\
     2>&1 | tee -a ${log_path} \
