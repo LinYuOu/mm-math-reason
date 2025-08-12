@@ -48,6 +48,7 @@ Download SFT and RL datasets from [HuggingFace](https://huggingface.co/datasets/
 | MATHVision      | 
 | MathVerse       |
 | MathVista       |
+
 Download benchmark datasets from [HuggingFace](https://huggingface.co/datasets/TencentBAC/TBAC-VLR1-7B-SFT-DATA/tree/main).
 
 ## Usage
