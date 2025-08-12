@@ -38,7 +38,24 @@ This project focuses on advancing mathematical reasoning capabilities in multimo
 For a complete list of required packages, see `requirements.txt` in the project root directory.
 
 ## Dataset
-Download SFT and RL datasets from [HuggingFace](https://huggingface.co/datasets/TencentBAC/TBAC-VLR1-7B-SFT-DATA/tree/main).
+Download datasets from [HuggingFace](https://huggingface.co/datasets/TencentBAC/TBAC-VLR1-7B-SFT-DATA/tree/main):
+
+### File List
+- `SFT.jsonl`: Supervised Fine-Tuning dataset
+- `MM_DATA_RL.jsonl`: Reinforcement Learning dataset (multimodal, contains both images and text)
+- `TEXT_DATA_RL.jsonl`: Reinforcement Learning dataset (text-only)
+- `benchmarks.tar.gz`: Benchmark evaluation datasets
+- `dataset_images.zip`: Image assets for multimodal datasets
+
+### Setup Instructions
+1. Extract image assets:
+   ```bash
+   unzip dataset_images.zip -d dataset_images
+   ```
+2. Extract benchmark datasets:
+   ```bash
+   tar -xzf benchmarks.tar.gz -C eval/Benchmarks
+   ```
 
 ## Benchmark
 | Benchmark Name   |
