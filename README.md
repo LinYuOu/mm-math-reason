@@ -21,19 +21,14 @@ This project focuses on advancing mathematical reasoning capabilities in multimo
 
 ## Installation
 ### Steps
-1. Clone ms-swift framework:
-   ```bash
-   git clone https://github.com/modelscope/ms-swift.git ms-swift
-   cd ms-swift && pip install -e .
-   ```
-2. Clone this repository:
+1. Clone this repository:
    ```bash
    git clone https://github.com/modelscope/mm_math_reason.git
    cd mm_math_reason
    ```
-3. Install dependencies:
+2. Install dependencies:
    ```bash
-   bash scripts/install.sh
+   source scripts/install.sh
    ```
 For a complete list of required packages, see `requirements.txt` in the project root directory.
 
@@ -61,11 +56,11 @@ Download datasets from [HuggingFace](https://huggingface.co/datasets/TencentBAC/
 ### Evaluation
 1. Generate model responses:
    ```bash
-   bash eval/eval.sh
+   bash eval/generate_res.sh
    ```
 2. Evaluate a JSONL file with math_verify:
    ```bash
-   python eval/eval_from_jsonl_with_mathverify.py --input_file <input_file.jsonl> --output_folder <output_folder>
+   bash eval.sh
    ```
 
 ### Training

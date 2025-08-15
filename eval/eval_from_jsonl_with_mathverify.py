@@ -12,6 +12,7 @@ from math_verify import (
     ExprExtractionConfig,
     LatexExtractionConfig,
 )
+from latex2sympy2_extended import NormalizationConfig
 from math_verify import parse, verify
 
 DYNAMATH_TOTAL_SAMPLES = 501  # 请根据实际情况修改这个数值
@@ -140,11 +141,23 @@ def math_verify_answer(model_ans, label_ans):
     model_answer_parsed = parse(
         fixed_model_answer_str,
         extraction_config=[
-            StringExtractionConfig(strings=("A", "B", "C", "D", "E")),
-            ExprExtractionConfig(),
-            LatexExtractionConfig(),
-        ],
-    )
+                StringExtractionConfig(strings=("A", "B", "C", "D", "E")),
+                ExprExtractionConfig(),
+                LatexExtractionConfig(
+                    normalization_config=NormalizationConfig(
+                        nits=False,
+                        malformed_operators=False,
+                        basic_latex=True,
+                        boxed="last",
+                        units=True,
+                    ),
+                    # Ensures that boxed is tried first
+                    boxed_match_priority=0,
+                    # try_extract_without_anchor=False,
+                ),
+            ],
+        extraction_mode="first_match",
+        )
 
     fixed_sol_str = fix_latex_answer(label_ans)
     sol_parsed = parse(
@@ -163,20 +176,20 @@ def math_verify_answer(model_ans, label_ans):
 
 
 def normalize_choice_answer(
-    answer, parsed_answer, choices=None, question=None, dataset_name=None
+    answer, model_answer, choices=None, question=None, dataset_name=None
 ):
     """
-    标准化选择题答案，使answer和parsed_answer格式一致进行比较
+    标准化选择题答案，使answer和model_answer格式一致进行比较
 
     Args:
-        answer: 原始答案 (可能是文本或字母)
-        parsed_answer: 解析后的答案 (可能是文本或字母)
+        answer: true answer: 原始答案 (可能是文本或字母)
+        model_answer: model 的答案 (可能是文本或字母)
         choices: 选项列表 (用于文本和字母之间的转换)
         question: 问题文本 (用于提取选项，当choices为None时)
         dataset_name: 数据集名称 (用于选择正确的解析模式)
 
     Returns:
-        tuple: (normalized_answer, normalized_parsed_answer, is_match)
+        tuple: (normalized_answer, normalized_model_answer, is_match)
     """
     # 字母到索引的映射
     letter_to_index = {"A": 0, "B": 1, "C": 2, "D": 3, "E": 4, "F": 5}
@@ -195,6 +208,21 @@ def normalize_choice_answer(
     def get_choice_info(value):
         """获取选项的各种表示形式"""
         value_str = str(value).strip()
+
+        # 如果是带符号的字母（如$A$）
+        if value_str.startswith("$") and value_str.endswith("$") and len(value_str) == 3:
+            letter = value_str[1].upper()
+            if letter in letter_to_index:
+                index = letter_to_index[letter]
+                # 如果有选项列表，获取对应文本
+                if choices and 0 <= index < len(choices):
+                    text = choices[index]
+                # 如果有选项字典，获取对应文本
+                elif options_dict and letter in options_dict:
+                    text = options_dict[letter]
+                else:
+                    text = letter
+                return {"letter": letter, "index": index, "text": text}
 
         # 如果是单个字母（A, B, C, D等）
         if len(value_str) == 1 and value_str.upper() in letter_to_index:
@@ -229,7 +257,7 @@ def normalize_choice_answer(
         return {"letter": value_str, "index": -1, "text": value_str}
 
     answer_info = get_choice_info(answer)
-    parsed_info = get_choice_info(parsed_answer)
+    model_info = get_choice_info(model_answer)
 
     # 比较逻辑：
     # 1. 如果两者都是有效字母选项，比较字母
@@ -240,23 +268,24 @@ def normalize_choice_answer(
     if (
         len(str(answer).strip()) == 1
         and str(answer).strip().upper() in letter_to_index
-        and len(str(parsed_answer).strip()) == 1
-        and str(parsed_answer).strip().upper() in letter_to_index
+        and len(str(model_answer).strip()) == 1
+        and str(model_answer).strip().upper() in letter_to_index
     ):
-        is_match = str(answer).strip().upper() == str(parsed_answer).strip().upper()
-        return answer_info["letter"], parsed_info["letter"], is_match
+        is_match = str(answer).strip().upper() == str(model_answer).strip().upper()
+        return answer_info["letter"], model_info["letter"], is_match
 
     # 情况2：通过索引比较（如MathVista）
-    elif answer_info["index"] >= 0 and parsed_info["index"] >= 0:
-        is_match = answer_info["index"] == parsed_info["index"]
-        return answer_info["letter"], parsed_info["letter"], is_match
+    elif answer_info["index"] >= 0 and model_info["index"] >= 0:
+        is_match = answer_info["index"] == model_info["index"]
+        return answer_info["letter"], model_info["letter"], is_match
 
     # 情况3：直接比较文本
     else:
-        is_match = answer_info["text"] == parsed_info["text"] or math_verify_answer(
-            answer_info["text"], parsed_info["text"]
+        # print(f"Comparing text: {answer_info['text']} vs {model_info['text']}")
+        is_match = answer_info["text"] == model_info["text"] or math_verify_answer(
+            answer_info["text"], model_info["text"]
         )
-        return answer_info["text"], parsed_info["text"], is_match
+        return answer_info["text"], model_info["text"], is_match
 
 
 def load_jsonl(file_path):
@@ -312,7 +341,7 @@ def process_dynamath_file(
                     image_key = int(num_part)
                     image_key_counts[image_key] += 1
 
-                    # 检查answer和parsed_answer是否匹配
+                    # 检查answer和model_answer是否匹配
                     answer_str = fix_latex_answer(str(data.get("answer", "")))
                     parsed_answer_str = fix_latex_answer(
                         str(data.get("parsed_answer", ""))
@@ -377,8 +406,8 @@ def process_dynamath_file(
     print(f"  verify=True比例: {verify_true_ratio:.4f}")
     print(f"  总样本量: {total_samples}")
     print(f"  满足条件的图片数量: {qualified_count}")
-    print(f"  其中answer==parsed_answer的图片数量: {len(match_qualified_images)}")
-    print(f"  在合格图片中answer==parsed_answer的比例: {match_ratio:.4f}")
+    print(f"  其中answer==model_answer的图片数量: {len(match_qualified_images)}")
+    print(f"  在合格图片中answer==model_answer的比例: {match_ratio:.4f}")
     print(f"  所有verify=True记录数: {len(all_records)}")
     print(f"  其中匹配记录数: {len(matched_records)}")
     print(f"  其中不匹配记录数: {len(mismatched_records)}")
@@ -402,7 +431,7 @@ def process_dynamath_file(
 
 
 def filter_and_process_standard(input_path, match_output_path, mismatch_output_path):
-    """处理标准文件（非DynaMath），生成匹配和不匹配两个文件"""
+    """处理标准文件，生成匹配和不匹配两个文件，仅保留匹配比例计算"""
     if not os.path.exists(input_path):
         print(f"错误：输入文件不存在 - {input_path}")
         return None
@@ -414,112 +443,62 @@ def filter_and_process_standard(input_path, match_output_path, mismatch_output_p
     dataset_name = detect_dataset_name(filename)
     print(f"检测到数据集类型: {dataset_name}")
 
-    # 调用通用加载函数（自动识别JSON/JSONL）
+    # 加载数据
     items = load_jsonl(input_path)
     if not items:
         print("无有效数据可处理，跳过该文件")
         return None
 
-    filtered_match = []  # 存储匹配的记录
-    filtered_mismatch = []  # 存储不匹配的记录
-    total_records_count = len(items)  # 总记录数
-    verify_true_count = 0  # verify=True的总数
-    match_count = 0  # verify=True且answer==parsed_answer的数量
-    mismatch_count = 0  # verify=True且answer!=parsed_answer的数量
+    filtered_match = []  # 匹配记录
+    filtered_mismatch = []  # 不匹配记录
 
     for item in items:
         # 检查必要字段
-        required_fields = ["answer", "parsed_answer", "verify", "question"]
-        if not all(field in item for field in required_fields):
+        if not all(field in item for field in ["answer", "parsed_answer", "question"]):
             continue
 
-        # 统计verify=True的情况
-        if Eval_with_math_verify or item["verify"] is True:
-            verify_true_count += 1
+        # 标准化答案并比较
+        _, _, is_match = normalize_choice_answer(
+            item["answer"], item["parsed_answer"], item.get("choices"), item["question"], dataset_name
+        )
 
-            # 获取choices（如果是MathVista格式）
-            choices = item.get("choices", None)
-            question = item.get("question", "")
+        # 提取公共字段
+        record = {
+            # "question": item["question"],
+            "answer": item["answer"],
+            "parsed_answer": item["parsed_answer"],
+            # "dataset_type": dataset_name,
+            "is_match": is_match,
+        }
 
-            # 使用新的标准化函数进行比较
-            norm_answer, norm_parsed, is_match = normalize_choice_answer(
-                item["answer"], item["parsed_answer"], choices, question, dataset_name
-            )
+        # 分离结果
+        if is_match:
+            filtered_match.append(record)
+        else:
+            filtered_mismatch.append(record)
 
-            # 提取公共字段
-            extracted = {
-                "question": item["question"],
-                "answer": item["answer"],
-                "parsed_answer": item["parsed_answer"],
-                "normalized_answer": norm_answer,
-                "normalized_parsed_answer": norm_parsed,
-                "dataset_type": dataset_name,
-                "is_match": is_match,
-            }
+    # 计算匹配比例
+    match_ratio = len(filtered_match) / len(items) if len(items) > 0 else 0
 
-            # 如果有choices，也包含进来
-            if choices:
-                extracted["choices"] = choices
-
-            # 如果从question中提取了选项，也包含进来
-            elif question and dataset_name in ["MathVerse", "We-Math"]:
-                extracted_options = extract_options(question, dataset_name)
-                if extracted_options:
-                    extracted["extracted_options"] = extracted_options
-
-            # 根据匹配结果分别存储
-            if is_match:
-                match_count += 1
-                filtered_match.append(extracted)
-            else:
-                mismatch_count += 1
-                filtered_mismatch.append(extracted)
-
-    # 计算比例
-    verify_true_ratio = (
-        verify_true_count / total_records_count if total_records_count > 0 else 0
-    )
-    match_ratio = match_count / verify_true_count if verify_true_count > 0 else 0
-    mismatch_ratio = mismatch_count / verify_true_count if verify_true_count > 0 else 0
-
-    print(f"总记录数: {total_records_count}")
-    print(f"verify=True总数: {verify_true_count}")
-    print(
-        f"verify=True比例: {verify_true_ratio:.4f} ({verify_true_count}/{total_records_count})"
-    )
-    print(f"其中answer==parsed_answer的数量: {match_count} (比例: {match_ratio:.4f})")
-    print(
-        f"其中answer!=parsed_answer的数量: {mismatch_count} (比例: {mismatch_ratio:.4f})"
-    )
-
-    # 写入匹配文件（JSONL格式，每行一个对象）
+    # 写入文件
     with open(match_output_path, "w", encoding="utf-8") as f:
         for item in filtered_match:
             json.dump(item, f, ensure_ascii=False)
             f.write("\n")
 
-    # 写入不匹配文件（JSONL格式，每行一个对象）
     with open(mismatch_output_path, "w", encoding="utf-8") as f:
         for item in filtered_mismatch:
             json.dump(item, f, ensure_ascii=False)
             f.write("\n")
 
-    print(f"处理完成：")
-    print(f"  匹配记录: {len(filtered_match)} 条，已保存到 {match_output_path}")
-    print(f"  不匹配记录: {len(filtered_mismatch)} 条，已保存到 {mismatch_output_path}")
+    print(f"匹配比例: {match_ratio:.2%}")
+    print(f"匹配记录数: {len(filtered_match)}")
+    print(f"不匹配记录数: {len(filtered_mismatch)}")
 
     return {
-        "filename": filename,
-        "match_ratio": f"{match_ratio*100:.2f}",
-        "mismatch_ratio": f"{mismatch_ratio*100:.2f}",
-        "verify_true_ratio": f"{verify_true_ratio*100:.2f}",
-        "match_count": match_count,
-        "mismatch_count": mismatch_count,
-        "verify_true_count": verify_true_count,
-        "total_records_count": total_records_count,
-        "match_filtered_count": len(filtered_match),
-        "mismatch_filtered_count": len(filtered_mismatch),
-        "dataset_type": dataset_name,
+        "match_ratio": match_ratio,
+        "match_count": len(filtered_match),
+        "mismatch_count": len(filtered_mismatch),
     }
 
 
@@ -653,7 +632,6 @@ def process_all_files(input_folder, output_folder, file_pattern="*.jsonl"):
         print("没有成功处理任何文件")
 
 
-Eval_with_math_verify = True
 # 主程序执行
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

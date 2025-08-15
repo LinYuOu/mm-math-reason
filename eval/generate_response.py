@@ -1,5 +1,4 @@
 "a file to generate mllm responses for evaluation"
-import asyncio
 import math
 import re
 import os
@@ -27,12 +26,6 @@ from math_verify import (
 from math_verify import parse, verify
 from latex2sympy2_extended import NormalizationConfig
 
-from eval_we_math import evaluate_we_math
-
-## SYSTEM_PROMPT = "A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in the mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think><answer> answer here </answer>"
-# SYSTEM_PROMPT = "You are a multimodal reasoner. The user asks a question, and you solve it. You need first think about the reasoning process in the mind and then provide the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think><answer> answer here </answer>"
-# SYSTEM_PROMPT = "Let's think step by step.The final answer MUST BE put in \\boxed{}."
-# SYSTEM_PROMPT = "You FIRST think about the reasoning process as an internal monologue and then provide the final answer. The reasoning process MUST BE enclosed within <think> </think> tags. The final answer MUST BE put in \\boxed{}."
 
 SYSTEM_PROMPT = os.environ.get(
     "SYSTEM_PROMPT",
@@ -40,7 +33,7 @@ SYSTEM_PROMPT = os.environ.get(
 )
 print(f"SYSTEM_PROMPT: {SYSTEM_PROMPT}")
 
-ROOT = "mm_math_reason/eval/Benchmarks"
+ROOT = os.environ.get("ROOT_PATH", "eval/Benchmarks")
 MAX_OUTPUT_TOKEN = int(os.environ.get("MAX_OUTPUT_TOKEN", 1024))  # 设置最大输出长度
 
 
@@ -55,13 +48,6 @@ def create_parser():
     parser.add_argument("--device", help="Device to use for inference.")
     parser.add_argument("--output_dir", help="Path to result.")
     parser.add_argument("--first_n", help="是否取 前 n 个数据")
-    parser.add_argument("--api_llm_base_url", type=str, default="API_BASE_URL")
-    parser.add_argument(
-        "--eval_llm_model_name",
-        type=str,
-        default="gemini-2.0-flash",
-        help="The model name for LLM evaluation.",
-    )
     parser.add_argument(
         "--save_batch_size",
         type=int,
@@ -325,9 +311,6 @@ def evaluate(all_preds, name):
             if model_answer_match
             else model_answer.strip()
         )
-        ans_value = None
-
-        
 
         parsed_model_answer = parse(
             model_answer,
@@ -361,23 +344,7 @@ def evaluate(all_preds, name):
             ],
         )
 
-        if ans_value is not None:
-            parsed_ans_value = parse(
-                ans_value,
-                extraction_config=[
-                    StringExtractionConfig(strings=("A", "B", "C", "D", "E")),
-                    ExprExtractionConfig(),
-                    LatexExtractionConfig(),
-                ],
-            )
-
         flag = verify(parsed_answer, parsed_model_answer) or answer == model_answer
-
-        if not flag and ans_value is not None:
-            flag = (
-                verify(parsed_ans_value, parsed_model_answer)
-                or ans_value == model_answer
-            )
 
         correct += int(flag)
         total += 1
@@ -506,17 +473,7 @@ class InferActor:
         for i, example in enumerate(examples_subset):
             example.update({"resp": final_responses[i]})
 
-        # 结果评估
-        if args.eval_with_llm and name != "We-Math":
-            acc, model_answers, correctness = evaluate_with_llm(
-                args, examples_subset, name, args.llm_eval_batch_size
-            )
-        elif name == "We-Math":
-            acc, model_answers, correctness = evaluate_we_math(
-                args.model_name_and_path, examples_subset
-            )
-        else:
-            acc, model_answers, correctness = evaluate(examples_subset, name)
+        acc, model_answers, correctness = evaluate(examples_subset, name)
 
         # 保存单卡评估结果
         for example, answer, correct in zip(
@@ -545,16 +502,15 @@ def main(args):
     ray.init()
 
     benchmark_path = {
-        # "We-Math": os.path.join(ROOT, "We-Math/data/testmini.json"), # 1740
-        "MathVerse": os.path.join(
-            ROOT, "MathVerse/testmini.json"
-        ),  # 4728 ??? 下载下来的只有 3940 ，当做子集吧
-        "MathVista": os.path.join(ROOT, "MathVista/testmini.json"),  # 1,000
-        "LogicVista": os.path.join(ROOT, "LogicVista/data/dataset.json"),  # 448
+        # "MathVerse": os.path.join(
+        #     ROOT, "MathVerse/testmini.json"
+        # ),
+        # "MathVista": os.path.join(ROOT, "MathVista/testmini.json"),  # 1,000
+        # "LogicVista": os.path.join(ROOT, "LogicVista/data/dataset.json"),
         "MATH-V": os.path.join(ROOT, "MATH-V/data/test.jsonl"),  # 3040
-        "DynaMath": os.path.join(
-            ROOT, "DynaMath/samples_and_result/combined_dataset.json"  # 5010
-        ),
+        # "DynaMath": os.path.join(
+        #     ROOT, "DynaMath/samples_and_result/combined_dataset.json",
+        # ),
     }
 
     results = [["Dataset", "Acc"]]
