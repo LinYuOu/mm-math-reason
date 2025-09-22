@@ -2,7 +2,7 @@
 
 [![🤗 Dataset](https://img.shields.io/badge/%F0%9F%A4%97%20Dataset-huggingface-blue)](https://huggingface.co/datasets/TencentBAC/TBAC-VLR1-7B-SFT-DATA/tree/main)
 [![🤗 Model](https://img.shields.io/badge/%F0%9F%A4%97%20Model-huggingface-blue)](https://huggingface.co/collections/TencentBAC/vlr1-6892c119672e8d0780e1d288)
-
+[![arXiv](https://img.shields.io/badge/arXiv-2301.01234-b31b1b.svg )](https://arxiv.org/pdf/2509.03321 )
 ## Project Overview
 This project focuses on advancing mathematical reasoning capabilities in multimodal AI models. Built upon [ms-swift](https://github.com/modelscope/ms-swift.git), it provides:
 - Evaluation pipelines for math verification and answer matching
